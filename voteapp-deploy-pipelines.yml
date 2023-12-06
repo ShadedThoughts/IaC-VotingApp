@@ -37,6 +37,7 @@ stages:
       inputs:
         action: createSecret
         secretName: $(imagePullSecret)
+        kubernetesServiceConnection: 'uohdaim-k8scluster'
         dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
           
     - task: KubernetesManifest@1
