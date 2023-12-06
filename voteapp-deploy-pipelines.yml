@@ -23,75 +23,35 @@ variables:
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
 
-
-# stages:
-# - stage: Build
-#   displayName: Build stage
-#   jobs:
-#   - job: Build
-#     displayName: Build
-#     pool:
-#       vmImage: $(vmImageName)
-#     steps:
-#     - task: Docker@2
-#       displayName: Build and push an image to container registry
-#       inputs:
-#         command: buildAndPush
-#         repository: $(imageRepository)
-#         dockerfile: $(dockerfilePath)
-#         containerRegistry: $(dockerRegistryServiceConnection)
-#         tags: |
-#           $(tag)
-
-#     - upload: manifests
-#       artifact: manifests
-
-# - stage: Deploy
-#   displayName: Deploy stage
-  # dependsOn: Build
-
+stages:
+- stage: Deploy
+  displayName: Deploy to Kubernetes
   jobs:
-  - deployment: Deploy
-    displayName: Deploy to Kubernetes
+  - job: Deploy
+    displayName: Deployment
     pool:
       vmImage: $(vmImageName)
-    environment: 'ShadedThoughtsIaCVotingApp.default'
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - task: KubernetesManifest@0
-            displayName: Create imagePullSecret
-            inputs:
-              action: createSecret
-              secretName: $(imagePullSecret)
-              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-
-          # - task: KubernetesManifest@0
-          #   displayName: Deploy to Kubernetes cluster
-          #   inputs:
-          #     action: deploy
-          #     manifests: |
-          #       $(Pipeline.Workspace)/manifests/deployment.yml
-          #       $(Pipeline.Workspace)/manifests/service.yml
-          #     imagePullSecrets: |
-          #       $(imagePullSecret)
-          #     containers: |
-          #       $(containerRegistry)/$(imageRepository):$(tag)
+    steps:
+    - task: KubernetesManifest@0
+      displayName: Create imagePullSecret
+      inputs:
+        action: createSecret
+        secretName: $(imagePullSecret)
+        dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
           
-          - task: KubernetesManifest@1
-            displayName: Deploy to Kubernetes cluster
-            inputs:
-              action: 'deploy'
-              connectionType: 'kubernetesServiceConnection'
-              kubernetesServiceConnection: 'uohdaim-k8scluster'
-              namespace: 'default'
-              manifests: '$(Build.SourcesDirectory)/k8s-specifications/'
-              imagePullSecrets: |
-                $(imagePullSecret)
-              containers: |
-                $(containerRegistry)/$(voteImageRepository)
-                $(containerRegistry)/$(resultImageRepository)
-                $(containerRegistry)/$(workerImageRepository)
-                $(containerRegistry)/$(seedDataImageRepository)
+    - task: KubernetesManifest@1
+      displayName: Deploy to Kubernetes cluster
+      inputs:
+        action: 'deploy'
+        connectionType: 'kubernetesServiceConnection'
+        kubernetesServiceConnection: 'uohdaim-k8scluster'
+        namespace: 'default'
+        manifests: '$(Build.SourcesDirectory)/k8s-specifications/'
+        imagePullSecrets: |
+          $(imagePullSecret)
+        containers: |
+          $(containerRegistry)/$(voteImageRepository)
+          $(containerRegistry)/$(resultImageRepository)
+          $(containerRegistry)/$(workerImageRepository)
+          $(containerRegistry)/$(seedDataImageRepository)
 
