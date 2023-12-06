@@ -47,7 +47,7 @@ stages:
         connectionType: 'kubernetesServiceConnection'
         kubernetesServiceConnection: 'uohdaim-k8scluster'
         namespace: 'default'
-        manifests: '$(Build.SourcesDirectory)/k8s-specifications/'
+        manifests: '$(Build.SourcesDirectory)/k8s-specifications/*.yaml'
         imagePullSecrets: |
           $(imagePullSecret)
         containers: |
